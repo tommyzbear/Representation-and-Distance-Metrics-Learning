@@ -4,6 +4,7 @@ from k_nearest_neighbour import KNN
 from sklearn.neighbors import NearestNeighbors
 import numpy as np
 import random
+import time
 
 dir = "D:/EEE Year4/Representation-and-Distance-Metrics-Learning/PR_data/"
 cuhk03_data = loadmat(dir + 'cuhk03_new_protocol_config_labeled.mat')
@@ -76,28 +77,32 @@ for idx in query_idxs:
     temp_cam_id = cam_Id[idx - 1]
     temp_label = labels[idx - 1]
     for gallery_idx in gallery_idxs:
-        if cam_Id[gallery_idx - 1] != temp_cam_id and labels[gallery_idx - 1] != temp_label:
+        if cam_Id[gallery_idx - 1] != temp_cam_id or labels[gallery_idx - 1] != temp_label:
             sample_rank_list.append(gallery_idx)
     unsorted_rank_list.append(np.asarray(sample_rank_list))
+
+n = 5
+start_time = time.time()
 
 score = 0
 for i in range(len(query_idxs)):
     feature_vector = features[query_idxs[i] - 1]
     gallery_vectors = features[unsorted_rank_list[i] - 1]
     gallery_labels = labels[unsorted_rank_list[i] - 1]
-    # knn = KNN(feature_vector, gallery_vectors, gallery_labels)
-    #
-    # neighbours, neighbours_labels = knn.nearest_neighbours(n_nearest_neighbours=1)
-    # if labels[query_idxs[i] - 1] in neighbours_labels:
-    #     score += 1
-    knn = NearestNeighbors(n_neighbors=1)
-    knn.fit(gallery_vectors)
-    rank_list = knn.kneighbors(np.asarray([feature_vector]), n_neighbors=5, return_distance=False)
-    rank_list_labels = []
-    for element in rank_list[0]:
-        rank_list_labels.append(gallery_labels[element])
-    if labels[query_idxs[i] - 1] in rank_list_labels:
+    knn = KNN(feature_vector, gallery_vectors, gallery_labels)
+
+    neighbours, neighbours_labels = knn.nearest_neighbours(n_nearest_neighbours=n)
+    if labels[query_idxs[i] - 1] in neighbours_labels:
         score += 1
+    # knn = NearestNeighbors(n_neighbors=1)
+    # knn.fit(gallery_vectors)
+    # rank_list = knn.kneighbors(np.asarray([feature_vector]), n_neighbors=5, return_distance=False)
+    # rank_list_labels = []
+    # for element in rank_list[0]:
+    #     rank_list_labels.append(gallery_labels[element])
+    # if labels[query_idxs[i] - 1] in rank_list_labels:
+    #     score += 1
+end_time = time.time()
+print("Accuracy for Simple Nearest Neighbour @rank %d : " % n, "{:.2%}".format(score/len(query_idxs)))
 
-print(score)
-
+print("Computation Time: %s seconds" % (end_time - start_time))
