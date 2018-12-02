@@ -1,7 +1,7 @@
 from scipy.io import loadmat
 import json
+from k_nearest_neighbour import KNN
 from sklearn.neighbors import NearestNeighbors
-from sklearn.metrics import classification_report
 import numpy as np
 import random
 
@@ -82,16 +82,21 @@ for idx in query_idxs:
 
 score = 0
 for i in range(len(query_idxs)):
-    knn = NearestNeighbors(n_neighbors=1)
     feature_vector = features[query_idxs[i] - 1]
     gallery_vectors = features[unsorted_rank_list[i] - 1]
+    gallery_labels = labels[unsorted_rank_list[i] - 1]
+    # knn = KNN(feature_vector, gallery_vectors, gallery_labels)
+    #
+    # neighbours, neighbours_labels = knn.nearest_neighbours(n_nearest_neighbours=1)
+    # if labels[query_idxs[i] - 1] in neighbours_labels:
+    #     score += 1
+    knn = NearestNeighbors(n_neighbors=1)
     knn.fit(gallery_vectors)
-    neighbour = knn.kneighbors(np.asarray([feature_vector]), n_neighbors=5, return_distance=False)
-    #if unsorted_rank_list[i][neighbour[0][0]] == query_idxs[i]:
-    rank_list = []
-    for element in neighbour:
-        rank_list.append(element[0])
-    if query_idxs[i] in np.asarray(unsorted_rank_list[i])[rank_list]:
+    rank_list = knn.kneighbors(np.asarray([feature_vector]), n_neighbors=5, return_distance=False)
+    rank_list_labels = []
+    for element in rank_list[0]:
+        rank_list_labels.append(gallery_labels[element])
+    if labels[query_idxs[i] - 1] in rank_list_labels:
         score += 1
 
 print(score)
