@@ -2,11 +2,13 @@ from scipy.io import loadmat
 import json
 from k_nearest_neighbour import KNN
 from sklearn.neighbors import NearestNeighbors
+from sklearn.neighbors import KNeighborsClassifier
 import numpy as np
 import random
 import time
+import os
 
-dir = "D:/EEE Year4/Representation-and-Distance-Metrics-Learning/PR_data/"
+dir = os.path.dirname(os.path.realpath(__file__)) + "\\PR_data\\"
 cuhk03_data = loadmat(dir + 'cuhk03_new_protocol_config_labeled.mat')
 
 # index starts from 1
@@ -94,7 +96,8 @@ for i in range(len(query_idxs)):
     neighbours, neighbours_labels = knn.nearest_neighbours(n_nearest_neighbours=n)
     if labels[query_idxs[i] - 1] in neighbours_labels:
         score += 1
-    # knn = NearestNeighbors(n_neighbors=1)
+
+    # knn = NearestNeighbor(n_neighbors=1)
     # knn.fit(gallery_vectors)
     # rank_list = knn.kneighbors(np.asarray([feature_vector]), n_neighbors=5, return_distance=False)
     # rank_list_labels = []
@@ -102,6 +105,7 @@ for i in range(len(query_idxs)):
     #     rank_list_labels.append(gallery_labels[element])
     # if labels[query_idxs[i] - 1] in rank_list_labels:
     #     score += 1
+
 end_time = time.time()
 print("Accuracy for Simple Nearest Neighbour @rank %d : " % n, "{:.2%}".format(score/len(query_idxs)))
 
