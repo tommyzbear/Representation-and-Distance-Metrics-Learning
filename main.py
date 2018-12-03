@@ -81,10 +81,12 @@ for idx in query_idxs:
             sample_rank_list.append(gallery_idx)
     unsorted_rank_list.append(np.asarray(sample_rank_list))
 
-n = 5
+n = 10
 start_time = time.time()
 
-score = 0
+rank_one_score = 0
+rank_five_score = 0
+rank_ten_score = 0
 for i in range(len(query_idxs)):
     feature_vector = features[query_idxs[i] - 1]
     gallery_vectors = features[unsorted_rank_list[i] - 1]
@@ -93,7 +95,11 @@ for i in range(len(query_idxs)):
 
     neighbours, neighbours_labels = knn.nearest_neighbours(n_nearest_neighbours=n)
     if labels[query_idxs[i] - 1] in neighbours_labels:
-        score += 1
+        rank_ten_score += 1
+        if labels[query_idxs[i] - 1] in neighbours_labels[:5]:
+            rank_five_score += 1
+            if labels[query_idxs[i] - 1] == neighbours_labels[0]:
+                rank_one_score += 1
     # knn = NearestNeighbors(n_neighbors=1)
     # knn.fit(gallery_vectors)
     # rank_list = knn.kneighbors(np.asarray([feature_vector]), n_neighbors=5, return_distance=False)
@@ -103,6 +109,8 @@ for i in range(len(query_idxs)):
     # if labels[query_idxs[i] - 1] in rank_list_labels:
     #     score += 1
 end_time = time.time()
-print("Accuracy for Simple Nearest Neighbour @rank %d : " % n, "{:.2%}".format(score/len(query_idxs)))
+print("Accuracy for Simple Nearest Neighbour @rank 1 : ", "{:.2%}".format(rank_one_score/len(query_idxs)))
+print("Accuracy for Simple Nearest Neighbour @rank 5 : ", "{:.2%}".format(rank_five_score/len(query_idxs)))
+print("Accuracy for Simple Nearest Neighbour @rank 10 : ", "{:.2%}".format(rank_ten_score/len(query_idxs)))
 
 print("Computation Time: %s seconds" % (end_time - start_time))
