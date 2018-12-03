@@ -1,11 +1,11 @@
 from scipy.io import loadmat
 import json
 from k_nearest_neighbour import KNN
-from sklearn.neighbors import NearestNeighbors
 import numpy as np
 import random
 import time
 
+# Sorting data for later use
 dir = "D:/EEE Year4/Representation-and-Distance-Metrics-Learning/PR_data/"
 cuhk03_data = loadmat(dir + 'cuhk03_new_protocol_config_labeled.mat')
 
@@ -81,6 +81,7 @@ for idx in query_idxs:
             sample_rank_list.append(gallery_idx)
     unsorted_rank_list.append(np.asarray(sample_rank_list))
 
+# Compute Simple Nearest Neighbour to get baseline measurements
 n = 10
 start_time = time.time()
 
@@ -100,17 +101,10 @@ for i in range(len(query_idxs)):
             rank_five_score += 1
             if labels[query_idxs[i] - 1] == neighbours_labels[0]:
                 rank_one_score += 1
-    # knn = NearestNeighbors(n_neighbors=1)
-    # knn.fit(gallery_vectors)
-    # rank_list = knn.kneighbors(np.asarray([feature_vector]), n_neighbors=5, return_distance=False)
-    # rank_list_labels = []
-    # for element in rank_list[0]:
-    #     rank_list_labels.append(gallery_labels[element])
-    # if labels[query_idxs[i] - 1] in rank_list_labels:
-    #     score += 1
+                
 end_time = time.time()
-print("Accuracy for Simple Nearest Neighbour @rank 1 : ", "{:.2%}".format(rank_one_score/len(query_idxs)))
-print("Accuracy for Simple Nearest Neighbour @rank 5 : ", "{:.2%}".format(rank_five_score/len(query_idxs)))
-print("Accuracy for Simple Nearest Neighbour @rank 10 : ", "{:.2%}".format(rank_ten_score/len(query_idxs)))
+print("Accuracy for Simple Nearest Neighbour @rank 1 : ", "{:.4%}".format(rank_one_score/len(query_idxs)))
+print("Accuracy for Simple Nearest Neighbour @rank 5 : ", "{:.4%}".format(rank_five_score/len(query_idxs)))
+print("Accuracy for Simple Nearest Neighbour @rank 10 : ", "{:.4%}".format(rank_ten_score/len(query_idxs)))
 
 print("Computation Time: %s seconds" % (end_time - start_time))
