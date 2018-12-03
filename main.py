@@ -4,9 +4,11 @@ from k_nearest_neighbour import KNN
 import numpy as np
 import random
 import time
+import os
+
 
 # Sorting data for later use
-dir = "D:/EEE Year4/Representation-and-Distance-Metrics-Learning/PR_data/"
+dir = os.path.dirname(os.path.realpath(__file__)) + "\\PR_data\\"
 cuhk03_data = loadmat(dir + 'cuhk03_new_protocol_config_labeled.mat')
 
 # index starts from 1
@@ -101,7 +103,7 @@ for i in range(len(query_idxs)):
             rank_five_score += 1
             if labels[query_idxs[i] - 1] == neighbours_labels[0]:
                 rank_one_score += 1
-                
+
 end_time = time.time()
 print("Accuracy for Simple Nearest Neighbour @rank 1 : ", "{:.4%}".format(rank_one_score/len(query_idxs)))
 print("Accuracy for Simple Nearest Neighbour @rank 5 : ", "{:.4%}".format(rank_five_score/len(query_idxs)))
