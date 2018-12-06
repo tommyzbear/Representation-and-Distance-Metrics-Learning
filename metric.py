@@ -2,11 +2,11 @@ import numpy as np
 from scipy.spatial.distance import correlation as correlation
 
 
-def euclidean(x1, x2):
-    sum = 0
-    for i in range(len(x1)):
-        sum += (x1[i] - x2[i])**2
-    return sum
+def euclidean(train_features, test_feature):
+    summation = 0
+    for i in range(len(train_features)):
+        summation += (train_features[i] - test_feature[i]) ** 2
+    return summation
 
 
 def cosine(x1, x2):

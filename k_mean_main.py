@@ -29,7 +29,10 @@ query_labels = []
 for idx in query_idxs:
     query_labels.append(labels[idx - 1])
 
-num_of_clusters_arr = [50, 100, 150, 200, 300]
+gallery_vectors = features[gallery_idxs - 1]
+gallery_labels = labels[gallery_idxs - 1]
+
+num_of_clusters_arr = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
 
 n = 10
 
@@ -39,9 +42,6 @@ for num_of_clusters in num_of_clusters_arr:
     rank_one_score = 0
     rank_five_score = 0
     rank_ten_score = 0
-
-    gallery_vectors = features[gallery_idxs - 1]
-    gallery_labels = labels[gallery_idxs - 1]
 
     k_mean = KMeans(n_clusters=num_of_clusters).fit(gallery_vectors)
     feature_clusters = k_mean.labels_
