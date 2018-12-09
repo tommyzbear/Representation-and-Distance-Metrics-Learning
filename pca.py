@@ -55,15 +55,15 @@ class PCA:
 
         # Compute projections of training samples onto eigen space
         if self.low_dimension is False:
-            self.train_sample_projection = np.matmul(normalized_train_samples.transpose(), self.best_eig_vectors)
+            self.train_sample_projection = np.matmul(normalized_train_samples.T, self.best_eig_vectors)
         else:
             # Compute eigen vector that matches the dimension using relationship u = Av,
             # where u is eigen vector of size D, v is eigen vector of size N<<D, A is normalized training faces
-            self.dimensioned_eig_vectors = np.matmul(normalized_train_samples, self.best_eig_vectors).transpose()
+            self.dimensioned_eig_vectors = np.matmul(normalized_train_samples, self.best_eig_vectors).T
             for v in self.dimensioned_eig_vectors:
                 idp.normalization(v)
-            self.dimensioned_eig_vectors = self.dimensioned_eig_vectors.transpose()
-            self.train_sample_projection = np.matmul(normalized_train_samples.transpose(), self.dimensioned_eig_vectors)
+            self.dimensioned_eig_vectors = self.dimensioned_eig_vectors.T
+            self.train_sample_projection = np.matmul(normalized_train_samples.T, self.dimensioned_eig_vectors)
 
         self.projected = True
 
@@ -74,6 +74,6 @@ class PCA:
         else:
             normalized_samples = (samples - self.train_avg_vector).T
             if self.low_dimension is False:
-                return np.matmul(normalized_samples.transpose(), self.best_eig_vectors)
+                return np.matmul(normalized_samples.T, self.best_eig_vectors)
             else:
-                return np.matmul(normalized_samples.transpose(), self.dimensioned_eig_vectors)
+                return np.matmul(normalized_samples.T, self.dimensioned_eig_vectors)

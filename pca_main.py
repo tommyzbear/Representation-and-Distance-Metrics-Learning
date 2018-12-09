@@ -9,6 +9,7 @@ from numba import jit
 from pca import PCA
 from pca_lda import PCA_LDA
 from metric_learn import MMC_Supervised
+import progressbar
 
 # Sorting data for later use
 dir = os.path.dirname(os.path.realpath(__file__)) + "\\PR_data\\"
@@ -79,40 +80,49 @@ for idx in query_idxs:
             sample_gallery_list.append(gallery_idx)
     gallery_data_idx.append(np.asarray(sample_gallery_list))
 
+# Set up progress bar
+bar = progressbar.ProgressBar(maxval=len(query_idxs),
+                              widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
 
 # PCA learning
-# print("-----PCA-----")
-# pca = PCA(original_train_features, original_train_labels, M=500, low_dimension=False)
-# pca.fit()
-#
-# projected_query_features = pca.project(query_features)
-#
-# n = 10
-# start_time = time.time()
-# rank_one_score = 0
-# rank_five_score = 0
-# rank_ten_score = 0
-# for k in range(len(projected_query_features)):
-#     feature_vector = projected_query_features[k]
-#     gallery_vectors = features[gallery_data_idx[k] - 1]
-#     projected_gallery_vectors = pca.project(gallery_vectors)
-#     gallery_labels = labels[gallery_data_idx[k] - 1]
-#     knn = KNN(feature_vector, projected_gallery_vectors, gallery_labels)
-#
-#     neighbours, cluster_labels = knn.nearest_neighbours(n_nearest_neighbours=n)
-#     if query_labels[k] in cluster_labels:
-#         rank_ten_score += 1
-#         if query_labels[k] in cluster_labels[:5]:
-#             rank_five_score += 1
-#             if query_labels[k] == cluster_labels[0]:
-#                 rank_one_score += 1
-#
-# end_time = time.time()
-# print("Accuracy for Simple Nearest Neighbour @rank 1 : ", "{:.4%}".format(rank_one_score / len(query_labels)))
-# print("Accuracy for Simple Nearest Neighbour @rank 5 : ", "{:.4%}".format(rank_five_score / len(query_labels)))
-# print("Accuracy for Simple Nearest Neighbour @rank 10 : ", "{:.4%}".format(rank_ten_score / len(query_labels)))
-#
-# print("Computation Time: %s seconds" % (end_time - start_time))
+print("-----PCA-----")
+pca = PCA(original_train_features, original_train_labels, M=500, low_dimension=False)
+pca.fit()
+
+projected_query_features = pca.project(query_features)
+
+n = 10
+start_time = time.time()
+rank_one_score = 0
+rank_five_score = 0
+rank_ten_score = 0
+
+bar.start()
+
+for k in range(len(projected_query_features)):
+    feature_vector = projected_query_features[k]
+    gallery_vectors = features[gallery_data_idx[k] - 1]
+    projected_gallery_vectors = pca.project(gallery_vectors)
+    gallery_labels = labels[gallery_data_idx[k] - 1]
+    knn = KNN(feature_vector, projected_gallery_vectors, gallery_labels)
+
+    neighbours, cluster_labels = knn.nearest_neighbours(n_nearest_neighbours=n)
+    if query_labels[k] in cluster_labels:
+        rank_ten_score += 1
+        if query_labels[k] in cluster_labels[:5]:
+            rank_five_score += 1
+            if query_labels[k] == cluster_labels[0]:
+                rank_one_score += 1
+
+    bar.update(k + 1)
+
+bar.finish()
+end_time = time.time()
+print("Accuracy for Simple Nearest Neighbour @rank 1 : ", "{:.4%}".format(rank_one_score / len(query_labels)))
+print("Accuracy for Simple Nearest Neighbour @rank 5 : ", "{:.4%}".format(rank_five_score / len(query_labels)))
+print("Accuracy for Simple Nearest Neighbour @rank 10 : ", "{:.4%}".format(rank_ten_score / len(query_labels)))
+
+print("Computation Time: %s seconds" % (end_time - start_time))
 
 # PCA_LDA
 print("-----PCA_LDA-----")
@@ -126,6 +136,8 @@ pca_lda = PCA_LDA(train_features, train_labels, M_pca=500, M_lda=num_of_distinct
 pca_lda.fit()
 
 projected_query_features = pca_lda.project(query_features)
+
+bar.start()
 
 for k in range(len(projected_query_features)):
     feature_vector = projected_query_features[k]
@@ -142,9 +154,13 @@ for k in range(len(projected_query_features)):
             if query_labels[k] == cluster_labels[0]:
                 rank_one_score += 1
 
+    bar.update(k + 1)
+
+bar.finish()
 end_time = time.time()
 print("Accuracy for Simple Nearest Neighbour @rank 1 : ", "{:.4%}".format(rank_one_score / len(query_labels)))
 print("Accuracy for Simple Nearest Neighbour @rank 5 : ", "{:.4%}".format(rank_five_score / len(query_labels)))
 print("Accuracy for Simple Nearest Neighbour @rank 10 : ", "{:.4%}".format(rank_ten_score / len(query_labels)))
 
 print("Computation Time: %s seconds" % (end_time - start_time))
+
