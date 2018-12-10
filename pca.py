@@ -47,11 +47,11 @@ class PCA:
         largest_eig_value_indices = np.argsort(eig_values)[-self.M:]
 
         # Initialize best eigen vectors
-        self.best_eig_vectors = np.zeros((len(self.covariance), self.M), dtype=np.complex)
+        self.best_eig_vectors = np.zeros((len(self.covariance), self.M))
 
         # Retrieve corresponding eigen vectors mapping to top M eigen values
         for i in range(0, self.M):
-            self.best_eig_vectors[:, i] = eig_vectors[:, largest_eig_value_indices[i]]
+            self.best_eig_vectors[:, i] = eig_vectors[:, largest_eig_value_indices[i]].real
 
         # Compute projections of training samples onto eigen space
         if self.low_dimension is False:

@@ -8,6 +8,15 @@ import os
 from numba import jit
 from sklearn import preprocessing
 from data_normaliser import Normaliser
+import seaborn as sns
+import matplotlib.pyplot as plt
+from metric_learn import LMNN
+import progressbar
+
+
+# Set up progress bar
+bar = progressbar.ProgressBar(maxval=1400,
+                              widgets=[progressbar.Bar('=', '[', ']'), ' ', progressbar.Percentage()])
 
 
 @jit
@@ -35,6 +44,7 @@ def compute_NN_result(query_data,
                 rank_five_score += 1
                 if test_labels[i] == cluster_labels[0]:
                     rank_one_score += 1
+        bar.update(i + 1)
 
     end_time = time.time()
     print("Accuracy for Simple Nearest Neighbour @rank 1 : ", "{:.4%}".format(rank_one_score / len(query_data)))
@@ -109,7 +119,6 @@ gallery_features = features[gallery_idxs - 1]
 # Get Gallery labels
 gallery_labels = labels[gallery_idxs - 1]
 
-
 gallery_data_idx = []
 for idx in query_idxs:
     sample_gallery_list = []
@@ -120,26 +129,40 @@ for idx in query_idxs:
             sample_gallery_list.append(j)
     gallery_data_idx.append(np.asarray(sample_gallery_list))
 
+# Compute covariance of original training set
+# training_covariance = np.cov(original_train_features.T)
+# sns.heatmap(training_covariance, center=0, vmin=-1, vmax=1, cmap="YlGnBu")
+# plt.show()
 # Compute baseline Simple Nearest Neighbour
-print("-----Baseline Simple NN------")
-compute_NN_result(query_features, gallery_features, query_labels, gallery_labels, gallery_data_idx)
+# print("-----Baseline Simple NN------")
+# compute_NN_result(query_features, gallery_features, query_labels, gallery_labels, gallery_data_idx)
+#
+# # Compute NN result with normalized data
+# normalization_methods = ['Std', 'l1', 'l2', 'max', 'MinMax', 'MaxAbs', 'Robust']
+# for normalization_method in normalization_methods:
+#     print("-----NN with normalised data using %s normalization method-----" % normalization_method)
+#     normaliser = Normaliser()
+#     normaliser.fit(original_train_features, method=normalization_method)
+#     normalised_query_features = normaliser.transform(query_features)
+#     normalised_gallery_features = normaliser.transform(gallery_features)
+#     compute_NN_result(normalised_query_features,
+#                       normalised_gallery_features,
+#                       query_labels,
+#                       gallery_labels,
+#                       gallery_data_idx)
 
-# Compute NN result with normalized data
-normalization_methods = ['Std', 'l1', 'l2', 'max', 'MinMax', 'MaxAbs', 'Robust']
-for normalization_method in normalization_methods:
-    print("-----NN with normalised data using %s normalization method-----" % normalization_method)
-    normaliser = Normaliser()
-    normaliser.fit(original_train_features, method=normalization_method)
-    normalised_query_features = normaliser.transform(query_features)
-    normalised_gallery_features = normaliser.transform(gallery_features)
-    compute_NN_result(normalised_query_features,
-                      normalised_gallery_features,
-                      query_labels,
-                      gallery_labels,
-                      gallery_data_idx)
-
-
-
+# Compute LMNN
+lmnn = LMNN(k=5, use_pca=False, convergence_tol=1e-7, verbose=True)
+lmnn.fit(original_train_features, original_train_labels)
+transformed_query_features = lmnn.transform(query_features)
+transformed_gallery_features = lmnn.transform(gallery_features)
+bar.start()
+compute_NN_result(transformed_query_features,
+                  transformed_gallery_features,
+                  query_labels,
+                  gallery_labels,
+                  gallery_data_idx)
+bar.finish()
 # # Min Max Normalization on features
 # print("-----Simple NN with min-max normalization-----")
 # min_max_scaler = preprocessing.MinMaxScaler()

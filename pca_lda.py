@@ -1,5 +1,6 @@
 from pca import *
 import numpy as np
+from numba import jit
 
 
 class PCA_LDA:
@@ -23,6 +24,7 @@ class PCA_LDA:
         self.class_mean = None
         self.projected = False
 
+    @jit
     def fit(self):
         self.class_mean = []
         for label in self.distinct_labels:
@@ -78,6 +80,7 @@ class PCA_LDA:
 
         self.projected = True
 
+    @jit
     def project(self, samples):
         if self.projected is False:
             raise Exception("Need to train PCA_LDA first by using .fit().")
@@ -157,6 +160,7 @@ def count_distinct_labels(distinct_labels):
     return len(distinct_labels)
 
 
+@jit
 def distinct_labels(labels):
     distinct_identities = set({})
     for label in labels:
