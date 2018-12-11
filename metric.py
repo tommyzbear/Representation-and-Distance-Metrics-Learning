@@ -1,32 +1,98 @@
 import numpy as np
-from scipy.spatial.distance import correlation as correlation
+from numba import jit
+from scipy.spatial import distance
 
 
+def distance_metrics(method):
+    method_dict = {
+        'Euclidean': euclidean,
+        'Manhattan': manhattan,
+        'Chessboard': chessboard,
+        'Cosine': cosine,
+        'Correlation': cross_correlation,
+        'Intersection': intersection,
+        'KL_Divergence': kullback_leibler_divergence,
+        'JS_Divergence': jensen_shannon_divergence,
+        'Quadratic_form_distance': quadratic_form_histogram_dist,
+        'Mahalanobis': mahalanobis_dist
+    }
+
+    method_func = method_dict.get(method, lambda: "Distance matrix not found")
+    return method_func
+
+
+@jit
 def euclidean(train_features, test_feature):
-    summation = 0
-    for i in range(len(train_features)):
-        summation += (train_features[i] - test_feature[i]) ** 2
-    return summation
+    return np.linalg.norm(train_features - test_feature, axis=1)
 
 
-def cosine(x1, x2):
-    cos_similarity = x1.T * x2 / (np.linalg.norm(x1, 2) * np.linalg.norm(x2, 2))
-    return cos_similarity
+@jit
+def manhattan(train_features, test_feature):
+    return np.sum(abs(train_features - test_feature), axis=1)
 
 
-def cross_correlation(x1, x2):
-    cross_corr = correlation(x1, x2)
-    return cross_corr
+@jit
+def chessboard(train_features, test_feature):
+    return np.max(abs(train_features - test_feature), axis=1)
 
 
-def intersection(x1, x2):
+@jit
+def cosine(train_features, test_feature):
+    cos_list = np.zeros(train_features.shape[0])
+    for i in range(train_features.shape[0]):
+        cos_list[i] = distance.cosine(train_features, test_feature)
+    return
+
+
+@jit
+def cross_correlation(train_features, test_feature):
+    feature_correlations = []
+    for train_feature in train_features:
+        feature_correlations.append(distance.correlation(train_feature, test_feature))
+    return np.asarray(feature_correlations)
+
+
+@jit
+def intersection(train_features, test_feature):
     min_sum = 0
-    for i in range(len(x1)):
-        min_sum += min(x1[i], x2[i])
-    unnormalized_intersection = ((min_sum/sum(x1))+(min_sum/sum(x2)))/2
-    return unnormalized_intersection
+    for i in range(len(train_features)):
+        min_sum += min(train_features[i], test_feature)
+    # intersection = ((min_sum / sum(train_features)) + (min_sum / sum(test_feature))) / 2
+    return min_sum
 
 
-def chi_square(x1, x2):
-    chi_sq_sum = (np.sum((x1 - x2) ** 2 / (x1 + x2)))/2
+@jit
+def kullback_leibler_divergence(train_features, test_feature):
+    return np.sum(train_features*np.log(train_features / test_feature), axis=1)
+
+
+@jit
+def jensen_shannon_divergence(train_features, test_feature):
+    half_KL_P = (1/2) * np.sum(train_features*np.log((2 * train_features) / (train_features + test_feature)), axis=1)
+    half_KL_Q = (1/2) * np.sum(np.log((2 * test_feature) / (train_features + test_feature)) * train_features, axis=1)
+    return half_KL_P + half_KL_Q
+
+
+@jit
+def quadratic_form_histogram_dist(train_features, test_feature):
+    QF_arr = []
+    for train_feature in train_features:
+        feature_diff = train_feature - test_feature
+        QF_arr.append(np.sqrt(feature_diff @ np.cov(feature_diff) @ feature_diff))
+    return np.asarray(QF_arr)
+
+
+@jit
+def mahalanobis_dist(gallery_features, query_feature, covariance):
+    diff = gallery_features - query_feature
+    A = np.linalg.inv(covariance)
+    dist_arr = np.diagonal(diff @ A @ diff.T)
+    return dist_arr
+
+
+@jit
+def chi_square(train_features, test_feature):
+    chi_sq_sum = np.sum((train_features - test_feature) ** 2 / (train_features + test_feature), axis=1) / 2
     return chi_sq_sum
+
+
