@@ -41,7 +41,6 @@ def compute_k_mean(n_clusters, query_data, gallery_data, gallery_results):
     print("Accuracy for K-Mean @rank 10 : ", "{:.4%}".format(rank_ten_score / len(query_data)),
           "K = %d" % n_clusters)
 
-
 # Sorting data for later use
 dir = os.path.dirname(os.path.realpath(__file__)) + "\\PR_data\\"
 cuhk03_data = loadmat(dir + 'cuhk03_new_protocol_config_labeled.mat')
@@ -140,3 +139,4 @@ mmc.fit(pca.train_sample_projection, original_train_labels)
 transformed_query_features = mmc.transform(pca_query_features)
 transformed_gallery_features = mmc.transform(pca_gallery_features)
 compute_k_mean(num_of_clusters, transformed_query_features, transformed_gallery_features, gallery_labels)
+
