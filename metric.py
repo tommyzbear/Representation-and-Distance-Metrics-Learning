@@ -1,6 +1,6 @@
 import numpy as np
-from scipy.spatial.distance import correlation
 from numba import jit
+from scipy.spatial import distance
 
 
 def distance_metrics(method):
@@ -38,14 +38,17 @@ def chessboard(train_features, test_feature):
 
 @jit
 def cosine(train_features, test_feature):
-    return train_features @ test_feature / (np.linalg.norm(train_features, axis=1) * np.linalg.norm(test_feature))
+    cos_list = np.zeros(train_features.shape[0])
+    for i in range(train_features.shape[0]):
+        cos_list[i] = distance.cosine(train_features, test_feature)
+    return
 
 
 @jit
 def cross_correlation(train_features, test_feature):
     feature_correlations = []
     for train_feature in train_features:
-        feature_correlations.append(correlation(train_feature, test_feature))
+        feature_correlations.append(distance.correlation(train_feature, test_feature))
     return np.asarray(feature_correlations)
 
 
@@ -80,15 +83,16 @@ def quadratic_form_histogram_dist(train_features, test_feature):
 
 
 @jit
-def mahalanobis_dist(train_features, test_feature):
-    QF_arr = []
-    for train_feature in train_features:
-        feature_diff = train_feature - test_feature
-        QF_arr.append(np.sqrt(feature_diff @ np.linalg.inv(np.cov(feature_diff)) @ feature_diff))
-    return np.asarray(QF_arr)
+def mahalanobis_dist(gallery_features, query_feature, covariance):
+    diff = gallery_features - query_feature
+    A = np.linalg.inv(covariance)
+    dist_arr = np.diagonal(diff @ A @ diff.T)
+    return dist_arr
 
 
 @jit
 def chi_square(train_features, test_feature):
     chi_sq_sum = np.sum((train_features - test_feature) ** 2 / (train_features + test_feature), axis=1) / 2
     return chi_sq_sum
+
+

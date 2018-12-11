@@ -10,8 +10,10 @@ from sklearn import preprocessing
 from data_normaliser import Normaliser
 import seaborn as sns
 import matplotlib.pyplot as plt
-from metric_learn import LMNN
+from metric_learn import LMNN, MMC_Supervised, MMC, NCA, ITML_Supervised
 import progressbar
+from constraints import constraints_generator
+from pca import PCA
 
 
 # Set up progress bar
@@ -47,7 +49,7 @@ def compute_NN_result(query_data,
         bar.update(i + 1)
 
     end_time = time.time()
-    print("Accuracy for Simple Nearest Neighbour @rank 1 : ", "{:.4%}".format(rank_one_score / len(query_data)))
+    print("\nAccuracy for Simple Nearest Neighbour @rank 1 : ", "{:.4%}".format(rank_one_score / len(query_data)))
     print("Accuracy for Simple Nearest Neighbour @rank 5 : ", "{:.4%}".format(rank_five_score / len(query_data)))
     print("Accuracy for Simple Nearest Neighbour @rank 10 : ", "{:.4%}".format(rank_ten_score / len(query_data)))
 
@@ -71,7 +73,7 @@ with open(dir + 'feature_data.json', 'r') as f:
 features = np.asarray(features)
 
 original_train_labels = labels[original_train_idxs - 1]
-original_train_features = features[original_train_labels - 1]
+original_train_features = features[original_train_idxs - 1]
 
 # Get all identities in training set
 train_distinct_labels = set([])
@@ -129,14 +131,15 @@ for idx in query_idxs:
             sample_gallery_list.append(j)
     gallery_data_idx.append(np.asarray(sample_gallery_list))
 
-# Compute covariance of original training set
-# training_covariance = np.cov(original_train_features.T)
-# sns.heatmap(training_covariance, center=0, vmin=-1, vmax=1, cmap="YlGnBu")
-# plt.show()
+pca = PCA(original_train_features, original_train_labels, M=500, low_dimension=False)
+pca.fit()
+pca_query_features = pca.project(query_features)
+pca_gallery_features = pca.project(gallery_features)
+
 # Compute baseline Simple Nearest Neighbour
-# print("-----Baseline Simple NN------")
-# compute_NN_result(query_features, gallery_features, query_labels, gallery_labels, gallery_data_idx)
-#
+print("-----Baseline Simple NN------")
+compute_NN_result(query_features, gallery_features, query_labels, gallery_labels, gallery_data_idx)
+
 # # Compute NN result with normalized data
 # normalization_methods = ['Std', 'l1', 'l2', 'max', 'MinMax', 'MaxAbs', 'Robust']
 # for normalization_method in normalization_methods:
@@ -152,10 +155,25 @@ for idx in query_idxs:
 #                       gallery_data_idx)
 
 # Compute LMNN
-lmnn = LMNN(k=5, use_pca=False, convergence_tol=1e-7, verbose=True)
-lmnn.fit(original_train_features, original_train_labels)
-transformed_query_features = lmnn.transform(query_features)
-transformed_gallery_features = lmnn.transform(gallery_features)
+# print("-----LMNN learning-----")
+# lmnn = LMNN(k=5, max_iter=17, use_pca=False, convergence_tol=1e-6, learn_rate=1e-6, verbose=True)
+# lmnn.fit(original_train_features, original_train_labels)
+# transformed_query_features = lmnn.transform(query_features)
+# transformed_gallery_features = lmnn.transform(gallery_features)
+# bar.start()
+# compute_NN_result(transformed_query_features,
+#                   transformed_gallery_features,
+#                   query_labels,
+#                   gallery_labels,
+#                   gallery_data_idx)
+# bar.finish()
+
+# Compute MMC_Supervised
+print("-----MMC learning-----")
+mmc = MMC_Supervised(max_iter=20, convergence_threshold=1e-5, num_constraints=500, verbose=True)
+mmc.fit(pca.train_sample_projection, original_train_labels)
+transformed_query_features = mmc.transform(pca_query_features)
+transformed_gallery_features = mmc.transform(pca_gallery_features)
 bar.start()
 compute_NN_result(transformed_query_features,
                   transformed_gallery_features,
@@ -163,17 +181,35 @@ compute_NN_result(transformed_query_features,
                   gallery_labels,
                   gallery_data_idx)
 bar.finish()
-# # Min Max Normalization on features
-# print("-----Simple NN with min-max normalization-----")
-# min_max_scaler = preprocessing.MinMaxScaler()
-# normalized_features = min_max_scaler.fit_transform(features)
-#
-# compute_NN_result(normalized_features, query_idxs, gallery_data_idx, method_name='Euclidean')
-#
-# # Standardization on features
-# print("-----Simple NN with Standardization-----")
-# normalized_features = preprocessing.scale(features)
-#
+
+# Compute NCA (Neighbourhood Components Analysis) learning
+# print("-----NCA learning-----")
+# nca = NCA(max_iter=20, verbose=True)
+# nca.fit(original_train_features, original_train_labels)
+# transformed_query_features = nca.transform(query_features)
+# transformed_gallery_features = nca.transform(gallery_features)
+# bar.start()
+# compute_NN_result(transformed_query_features,
+#                   transformed_gallery_features,
+#                   query_labels,
+#                   gallery_labels,
+#                   gallery_data_idx)
+# bar.finish()
+
+# Compute ITML (Information Theoretic Metric Learning)
+print("-----ITML learning-----")
+itml = ITML_Supervised(max_iter=20, convergence_threshold=1e-5, num_constraints=1000, verbose=True)
+itml.fit(original_train_features, original_train_labels)
+transformed_query_features = itml.transform(query_features)
+transformed_gallery_features = itml.transform(gallery_features)
+bar.start()
+compute_NN_result(transformed_query_features,
+                  transformed_gallery_features,
+                  query_labels,
+                  gallery_labels,
+                  gallery_data_idx)
+bar.finish()
+
 # compute_NN_result(normalized_features, query_idxs, gallery_data_idx, method_name='Euclidean')
 # # Compute Simple Nearest Neighbour to get baseline measurements
 # dist_metrics = ['Euclidean',
