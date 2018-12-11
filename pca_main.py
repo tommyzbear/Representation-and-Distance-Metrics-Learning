@@ -28,7 +28,7 @@ with open(dir + 'feature_data.json', 'r') as f:
 features = np.asarray(features)
 
 original_train_labels = labels[original_train_idxs - 1]
-original_train_features = features[original_train_labels - 1]
+original_train_features = features[original_train_idxs - 1]
 
 # Get all identities in training set
 train_distinct_labels = set([])

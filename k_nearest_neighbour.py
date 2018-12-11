@@ -29,10 +29,14 @@ class KNN:
             return most_common_labels[np.argmin(dist)]
 
     @jit
-    def nearest_neighbours(self, n_nearest_neighbours=1):
+    def nearest_neighbours(self, n_nearest_neighbours=1, covariance=None):
         method_func = distance_metrics(self.dist_matrix)
-        
-        dist_matrix = method_func(self.train_features, self.test_feature)
+        if covariance is None and self.dist_matrix is 'Mahalanobis':
+            raise Exception("Covariance matrix not provided")
+        elif covariance is None:
+            dist_matrix = method_func(self.train_features, self.test_feature)
+        else:
+            dist_matrix = method_func(self.train_features, self.test_feature, covariance)
         nearest_n_indices = np.argsort(dist_matrix)[:n_nearest_neighbours]
         nearest_n_labels = self.train_labels[nearest_n_indices]
         return nearest_n_indices, nearest_n_labels
