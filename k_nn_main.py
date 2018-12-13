@@ -11,8 +11,8 @@ from data_normaliser import Normaliser
 import seaborn as sns
 import matplotlib.pyplot as plt
 from metric_learn import LMNN, MMC_Supervised, NCA, ITML_Supervised
-from constraints import constraints_generator
 from pca import PCA
+from average_precision import average_precision
 
 
 @jit
@@ -28,6 +28,7 @@ def compute_NN_result(query_data,
     rank_one_score = 0
     rank_five_score = 0
     rank_ten_score = 0
+    ap = 0
     for i in range(len(test_labels)):
         feature_vector = query_data[i]
         gallery_vectors = gallery_data[query_gallery_idxs[i]]
@@ -42,10 +43,12 @@ def compute_NN_result(query_data,
                 if test_labels[i] == cluster_labels[0]:
                     rank_one_score += 1
 
+        ap += average_precision(cluster_labels, test_labels[i])
     end_time = time.time()
     print("\nAccuracy for Simple Nearest Neighbour @rank 1 : ", "{:.4%}".format(rank_one_score / len(query_data)))
     print("Accuracy for Simple Nearest Neighbour @rank 5 : ", "{:.4%}".format(rank_five_score / len(query_data)))
     print("Accuracy for Simple Nearest Neighbour @rank 10 : ", "{:.4%}".format(rank_ten_score / len(query_data)))
+    print("mAP for Simple Nearest Neighbour : ", "{:.4%}".format(ap / len(query_data)))
 
     print("Computation Time: %s seconds" % (end_time - start_time))
 
@@ -119,12 +122,12 @@ for idx in query_idxs:
 
 
 # Compute baseline Simple Nearest Neighbour
-# print("-----Baseline Simple NN------")
-# compute_NN_result(query_features, gallery_features, query_labels, gallery_labels, gallery_data_idx)
-#
-# # Compute PCA result
+print("-----Baseline Simple NN------")
+compute_NN_result(query_features, gallery_features, query_labels, gallery_labels, gallery_data_idx)
+
+# Compute PCA result
 # print("\n-----PCA------")
-pca = PCA(original_train_features, original_train_labels, M=500)
+pca = PCA(original_train_features, M=500)
 pca.fit()
 pca_query_features = pca.project(query_features)
 pca_gallery_features = pca.project(gallery_features)
@@ -186,13 +189,13 @@ pca_gallery_features = pca.project(gallery_features)
 # transformed_gallery_features = mmc.transform(gallery_features)
 # compute_NN_result(transformed_query_features, transformed_gallery_features, query_labels, gallery_labels, gallery_data_idx)
 
-# Compute PCA_MMC (Mahalanobis Metric Learning for Clustering)
-print("\n-----PCA MMC-----")
-mmc = MMC_Supervised(max_iter=20, convergence_threshold=1e-5, num_constraints=500, verbose=True)
-mmc.fit(pca.train_sample_projection, original_train_labels)
-transformed_query_features = mmc.transform(pca_query_features)
-transformed_gallery_features = mmc.transform(pca_gallery_features)
-compute_NN_result(transformed_query_features, transformed_gallery_features, query_labels, gallery_labels, gallery_data_idx)
+# # Compute PCA_MMC (Mahalanobis Metric Learning for Clustering)
+# print("\n-----PCA MMC-----")
+# mmc = MMC_Supervised(max_iter=20, convergence_threshold=1e-5, num_constraints=500, verbose=True)
+# mmc.fit(pca.train_sample_projection, original_train_labels)
+# transformed_query_features = mmc.transform(pca_query_features)
+# transformed_gallery_features = mmc.transform(pca_gallery_features)
+# compute_NN_result(transformed_query_features, transformed_gallery_features, query_labels, gallery_labels, gallery_data_idx)
 
 # print("\n-----MMC diagonal-----")
 # mmc = MMC_Supervised(max_iter=20, convergence_threshold=1e-5, num_constraints=500, diagonal=True, verbose=True)

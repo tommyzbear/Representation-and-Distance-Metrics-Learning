@@ -7,11 +7,9 @@ class PCA:
     """Principle Component Analysis"""
     def __init__(self,
                  train_samples,
-                 train_results,
                  M,
                  low_dimension=False):
         self.train_samples = train_samples.T
-        self.train_results = train_results
         self.num_of_train_samples = train_samples.shape[0]
         self.resolution = train_samples.shape[1]
         self.M = M

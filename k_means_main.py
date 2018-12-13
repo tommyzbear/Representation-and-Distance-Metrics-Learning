@@ -7,12 +7,14 @@ import os
 import linear_assignment
 from statistics import mode
 from metric_learn import LMNN, NCA, MMC_Supervised, ITML_Supervised
+from average_precision import average_precision
 
 
 def compute_k_mean(n_clusters, query_data, gallery_data, gallery_results):
     rank_one_score = 0
     rank_five_score = 0
     rank_ten_score = 0
+    ap = 0
     print("Processing K-means clustering...")
     k_mean = KMeans(n_clusters=n_clusters).fit(gallery_data)
     feature_clusters = k_mean.labels_
@@ -32,6 +34,7 @@ def compute_k_mean(n_clusters, query_data, gallery_data, gallery_results):
                 rank_five_score += 1
                 if query_labels[i] == result_label[0]:
                     rank_one_score += 1
+        ap += average_precision(result_label, query_labels[i])
 
     print("\nAccuracy for K-Mean @rank 1 : ", "{:.4%}".format(rank_one_score / len(query_data)),
           "K = %d" % n_clusters)
@@ -39,6 +42,7 @@ def compute_k_mean(n_clusters, query_data, gallery_data, gallery_results):
           "K = %d" % n_clusters)
     print("Accuracy for K-Mean @rank 10 : ", "{:.4%}".format(rank_ten_score / len(query_data)),
           "K = %d" % n_clusters)
+    print("mAP for K-Mean  : ", "{:.4%}".format(ap / len(query_data)), "K = %d" % n_clusters)
 
 
 # Sorting data for later use
@@ -78,7 +82,7 @@ compute_k_mean(num_of_clusters, query_features, gallery_features, gallery_labels
 
 # Compute PCA result
 print("\n-----PCA------")
-pca = PCA(original_train_features, original_train_labels, M=500)
+pca = PCA(original_train_features, M=500)
 pca.fit()
 pca_query_features = pca.project(query_features)
 pca_gallery_features = pca.project(gallery_features)
