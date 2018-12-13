@@ -32,7 +32,6 @@ def compute_k_mean(n_clusters, query_data, gallery_data, gallery_results):
                 rank_five_score += 1
                 if query_labels[i] == result_label[0]:
                     rank_one_score += 1
-        bar.update(i + 1)
 
     print("\nAccuracy for K-Mean @rank 1 : ", "{:.4%}".format(rank_one_score / len(query_data)),
           "K = %d" % n_clusters)
@@ -40,6 +39,7 @@ def compute_k_mean(n_clusters, query_data, gallery_data, gallery_results):
           "K = %d" % n_clusters)
     print("Accuracy for K-Mean @rank 10 : ", "{:.4%}".format(rank_ten_score / len(query_data)),
           "K = %d" % n_clusters)
+
 
 # Sorting data for later use
 dir = os.path.dirname(os.path.realpath(__file__)) + "\\PR_data\\"
@@ -77,7 +77,7 @@ print("-----Baseline K-Means-----")
 compute_k_mean(num_of_clusters, query_features, gallery_features, gallery_labels)
 
 # Compute PCA result
-print("-----PCA------")
+print("\n-----PCA------")
 pca = PCA(original_train_features, original_train_labels, M=500)
 pca.fit()
 pca_query_features = pca.project(query_features)
@@ -140,3 +140,16 @@ transformed_query_features = mmc.transform(pca_query_features)
 transformed_gallery_features = mmc.transform(pca_gallery_features)
 compute_k_mean(num_of_clusters, transformed_query_features, transformed_gallery_features, gallery_labels)
 
+print("\n-----MMC diagonal-----")
+mmc = MMC_Supervised(max_iter=20, convergence_threshold=1e-5, num_constraints=500, diagonal=True, verbose=True)
+mmc.fit(original_train_features, original_train_labels)
+transformed_query_features = mmc.transform(query_features)
+transformed_gallery_features = mmc.transform(gallery_features)
+compute_k_mean(num_of_clusters, transformed_query_features, transformed_gallery_features, gallery_labels)
+
+print("\n-----PCA_MMC diagonal-----")
+mmc = MMC_Supervised(max_iter=20, convergence_threshold=1e-5, num_constraints=500, diagonal=True, verbose=True)
+mmc.fit(pca.train_sample_projection, original_train_labels)
+transformed_query_features = mmc.transform(pca_query_features)
+transformed_gallery_features = mmc.transform(pca_gallery_features)
+compute_k_mean(num_of_clusters, transformed_query_features, transformed_gallery_features, gallery_labels)
