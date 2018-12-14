@@ -7,7 +7,6 @@ import os
 import linear_assignment
 from statistics import mode
 from metric_learn import LMNN, NCA, MMC_Supervised, ITML_Supervised
-from average_precision import average_precision
 
 
 def compute_k_mean(n_clusters, query_data, gallery_data, gallery_results):
@@ -34,7 +33,6 @@ def compute_k_mean(n_clusters, query_data, gallery_data, gallery_results):
                 rank_five_score += 1
                 if query_labels[i] == result_label[0]:
                     rank_one_score += 1
-        ap += average_precision(result_label, query_labels[i])
 
     print("\nAccuracy for K-Mean @rank 1 : ", "{:.4%}".format(rank_one_score / len(query_data)),
           "K = %d" % n_clusters)
@@ -42,7 +40,6 @@ def compute_k_mean(n_clusters, query_data, gallery_data, gallery_results):
           "K = %d" % n_clusters)
     print("Accuracy for K-Mean @rank 10 : ", "{:.4%}".format(rank_ten_score / len(query_data)),
           "K = %d" % n_clusters)
-    print("mAP for K-Mean  : ", "{:.4%}".format(ap / len(query_data)), "K = %d" % n_clusters)
 
 
 # Sorting data for later use
@@ -77,7 +74,7 @@ num_of_clusters = 700
 n = 10
 
 # Compute K-Means baseline solution
-print("-----Baseline K-Means-----")
+'''print("-----Baseline K-Means-----")
 compute_k_mean(num_of_clusters, query_features, gallery_features, gallery_labels)
 
 # Compute PCA result
@@ -143,7 +140,7 @@ mmc.fit(pca.train_sample_projection, original_train_labels)
 transformed_query_features = mmc.transform(pca_query_features)
 transformed_gallery_features = mmc.transform(pca_gallery_features)
 compute_k_mean(num_of_clusters, transformed_query_features, transformed_gallery_features, gallery_labels)
-
+'''
 print("\n-----MMC diagonal-----")
 mmc = MMC_Supervised(max_iter=20, convergence_threshold=1e-5, num_constraints=500, diagonal=True, verbose=True)
 mmc.fit(original_train_features, original_train_labels)

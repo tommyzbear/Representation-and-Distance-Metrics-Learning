@@ -6,10 +6,7 @@ import random
 import time
 import os
 from numba import jit
-from sklearn import preprocessing
 from data_normaliser import Normaliser
-import seaborn as sns
-import matplotlib.pyplot as plt
 from metric_learn import LMNN, MMC_Supervised, NCA, ITML_Supervised
 from pca import PCA
 from average_precision import average_precision
@@ -136,6 +133,7 @@ pca_gallery_features = pca.project(gallery_features)
 # # Compute LMNN (Large Margin Nearest Neighbour) Learning
 # print("\n-----LMNN------")
 # lmnn = LMNN(k=5, max_iter=20, use_pca=False, convergence_tol=1e-6, learn_rate=1e-6, verbose=True)
+start_time = time.time()
 # lmnn.fit(original_train_features, original_train_labels)
 # transformed_query_features = lmnn.transform(query_features)
 # transformed_gallery_features = lmnn.transform(gallery_features)
@@ -144,7 +142,10 @@ pca_gallery_features = pca.project(gallery_features)
 # # Compute PCA_LMNN Learning
 # print("\n-----PCA_LMNN-----")
 # lmnn = LMNN(k=5, max_iter=20, use_pca=False, convergence_tol=1e-6, learn_rate=1e-6, verbose=True)
+start_time = time.time()
 # lmnn.fit(pca.train_sample_projection, original_train_labels)
+end_time = time.time()
+print("Learning time: %s" % (start_time - end_time))
 # transformed_query_features = lmnn.transform(pca_query_features)
 # transformed_gallery_features = lmnn.transform(pca_gallery_features)
 # compute_NN_result(transformed_query_features, transformed_gallery_features, query_labels, gallery_labels, gallery_data_idx)
@@ -160,7 +161,10 @@ pca_gallery_features = pca.project(gallery_features)
 # # Compute PCA_NCA Learning
 # print("\n-----PCA_NCA-----")
 # nca = NCA(max_iter=20, verbose=True)
+start_time = time.time()
 # nca.fit(pca.train_sample_projection, original_train_labels)
+end_time = time.time()
+print("Learning time: %s" % (start_time - end_time))
 # transformed_query_features = nca.transform(pca_query_features)
 # transformed_gallery_features = nca.transform(pca_gallery_features)
 # compute_NN_result(transformed_query_features, transformed_gallery_features, query_labels, gallery_labels, gallery_data_idx)
@@ -176,7 +180,10 @@ pca_gallery_features = pca.project(gallery_features)
 # # Compute PCA_ITML
 # print("\n-----PCA_ITML-----")
 # itml = ITML_Supervised(max_iter=20, convergence_threshold=1e-5, num_constraints=500, verbose=True)
+start_time = time.time()
 # itml.fit(pca.train_sample_projection, original_train_labels)
+end_time = time.time()
+print("Learning time: %s" % (start_time - end_time))
 # transformed_query_features = itml.transform(pca_query_features)
 # transformed_gallery_features = itml.transform(pca_gallery_features)
 # compute_NN_result(transformed_query_features, transformed_gallery_features, query_labels, gallery_labels, gallery_data_idx)
@@ -189,27 +196,33 @@ pca_gallery_features = pca.project(gallery_features)
 # transformed_gallery_features = mmc.transform(gallery_features)
 # compute_NN_result(transformed_query_features, transformed_gallery_features, query_labels, gallery_labels, gallery_data_idx)
 
-# # Compute PCA_MMC (Mahalanobis Metric Learning for Clustering)
-# print("\n-----PCA MMC-----")
-# mmc = MMC_Supervised(max_iter=20, convergence_threshold=1e-5, num_constraints=500, verbose=True)
-# mmc.fit(pca.train_sample_projection, original_train_labels)
-# transformed_query_features = mmc.transform(pca_query_features)
-# transformed_gallery_features = mmc.transform(pca_gallery_features)
-# compute_NN_result(transformed_query_features, transformed_gallery_features, query_labels, gallery_labels, gallery_data_idx)
+# Compute PCA_MMC (Mahalanobis Metric Learning for Clustering)
+print("\n-----PCA MMC-----")
+mmc = MMC_Supervised(max_iter=20, convergence_threshold=1e-5, num_constraints=500, verbose=True)
+start_time = time.time()
+mmc.fit(pca.train_sample_projection, original_train_labels)
+end_time = time.time()
+print("Learning time: %s" % (start_time - end_time))
+transformed_query_features = mmc.transform(pca_query_features)
+transformed_gallery_features = mmc.transform(pca_gallery_features)
+compute_NN_result(transformed_query_features, transformed_gallery_features, query_labels, gallery_labels, gallery_data_idx)
 
-# print("\n-----MMC diagonal-----")
-# mmc = MMC_Supervised(max_iter=20, convergence_threshold=1e-5, num_constraints=500, diagonal=True, verbose=True)
-# mmc.fit(original_train_features, original_train_labels)
-# transformed_query_features = mmc.transform(query_features)
-# transformed_gallery_features = mmc.transform(gallery_features)
-# compute_NN_result(transformed_query_features, transformed_gallery_features, query_labels, gallery_labels, gallery_data_idx)
-#
-# print("\n-----PCA_MMC diagonal-----")
-# mmc = MMC_Supervised(max_iter=20, convergence_threshold=1e-5, num_constraints=500, diagonal=True, verbose=True)
-# mmc.fit(pca.train_sample_projection, original_train_labels)
-# transformed_query_features = mmc.transform(pca_query_features)
-# transformed_gallery_features = mmc.transform(pca_gallery_features)
-# compute_NN_result(transformed_query_features, transformed_gallery_features, query_labels, gallery_labels, gallery_data_idx)
+print("\n-----MMC diagonal-----")
+mmc = MMC_Supervised(max_iter=20, convergence_threshold=1e-5, num_constraints=500, diagonal=True, verbose=True)
+mmc.fit(original_train_features, original_train_labels)
+transformed_query_features = mmc.transform(query_features)
+transformed_gallery_features = mmc.transform(gallery_features)
+compute_NN_result(transformed_query_features, transformed_gallery_features, query_labels, gallery_labels, gallery_data_idx)
+
+print("\n-----PCA_MMC diagonal-----")
+mmc = MMC_Supervised(max_iter=20, convergence_threshold=1e-5, num_constraints=500, diagonal=True, verbose=True)
+start_time = time.time()
+mmc.fit(pca.train_sample_projection, original_train_labels)
+end_time = time.time()
+print("Learning time: %s" % (start_time - end_time))
+transformed_query_features = mmc.transform(pca_query_features)
+transformed_gallery_features = mmc.transform(pca_gallery_features)
+compute_NN_result(transformed_query_features, transformed_gallery_features, query_labels, gallery_labels, gallery_data_idx)
 
 # # Compute NN result with normalized data
 # normalization_methods = ['Std', 'l1', 'l2', 'max', 'MinMax', 'MaxAbs', 'Robust']
