@@ -1,5 +1,5 @@
 import numpy as np
-#from numba import jit
+from numba import jit
 from metric import distance_metrics
 
 
@@ -28,7 +28,7 @@ class KNN:
                 i += 1
             return most_common_labels[np.argmin(dist)]
 
-    #@jit
+    @jit
     def nearest_neighbours(self, n_nearest_neighbours=1, covariance=None):
         method_func = distance_metrics(self.dist_matrix)
         if covariance is None and self.dist_matrix is 'Mahalanobis':

@@ -1,5 +1,5 @@
 import numpy as np
-#from numba import jit
+from numba import jit
 from scipy.spatial import distance
 
 
@@ -21,22 +21,22 @@ def distance_metrics(method):
     return method_func
 
 
-#@jit
+@jit
 def euclidean(train_features, test_feature):
     return np.linalg.norm(train_features - test_feature, axis=1)
 
 
-#@jit
+@jit
 def manhattan(train_features, test_feature):
     return np.sum(abs(train_features - test_feature), axis=1)
 
 
-#@jit
+@jit
 def chessboard(train_features, test_feature):
     return np.max(abs(train_features - test_feature), axis=1)
 
 
-#@jit
+@jit
 def cosine(train_features, test_feature):
     cos_list = np.zeros(train_features.shape[0])
     for i in range(train_features.shape[0]):
@@ -44,7 +44,7 @@ def cosine(train_features, test_feature):
     return
 
 
-#@jit
+@jit
 def cross_correlation(train_features, test_feature):
     feature_correlations = []
     for train_feature in train_features:
@@ -52,7 +52,7 @@ def cross_correlation(train_features, test_feature):
     return np.asarray(feature_correlations)
 
 
-#@jit
+@jit
 def intersection(train_features, test_feature):
     min_sum = 0
     for i in range(len(train_features)):
@@ -61,19 +61,19 @@ def intersection(train_features, test_feature):
     return min_sum
 
 
-#@jit
+@jit
 def kullback_leibler_divergence(train_features, test_feature):
     return np.sum(train_features*np.log(train_features / test_feature), axis=1)
 
 
-#@jit
+@jit
 def jensen_shannon_divergence(train_features, test_feature):
     half_KL_P = (1/2) * np.sum(train_features*np.log((2 * train_features) / (train_features + test_feature)), axis=1)
     half_KL_Q = (1/2) * np.sum(np.log((2 * test_feature) / (train_features + test_feature)) * train_features, axis=1)
     return half_KL_P + half_KL_Q
 
 
-#@jit
+@jit
 def quadratic_form_histogram_dist(train_features, test_feature):
     QF_arr = []
     for train_feature in train_features:
@@ -82,7 +82,7 @@ def quadratic_form_histogram_dist(train_features, test_feature):
     return np.asarray(QF_arr)
 
 
-#@jit
+@jit
 def mahalanobis_dist(gallery_features, query_feature, covariance):
     diff = gallery_features - query_feature
     A = np.linalg.inv(covariance)
@@ -90,7 +90,7 @@ def mahalanobis_dist(gallery_features, query_feature, covariance):
     return dist_arr
 
 
-#@jit
+@jit
 def chi_square(train_features, test_feature):
     chi_sq_sum = np.sum((train_features - test_feature) ** 2 / (train_features + test_feature), axis=1) / 2
     return chi_sq_sum

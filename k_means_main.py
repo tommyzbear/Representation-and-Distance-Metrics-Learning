@@ -8,13 +8,14 @@ import linear_assignment
 from statistics import mode
 from metric_learn import LMNN, NCA, MMC_Supervised, ITML_Supervised
 import time
+from numba import jit
 
 
+@jit
 def compute_k_mean(n_clusters, query_data, gallery_data, gallery_results):
     rank_one_score = 0
     rank_five_score = 0
     rank_ten_score = 0
-    ap = 0
     print("Processing K-means clustering...")
     k_mean = KMeans(n_clusters=n_clusters).fit(gallery_data)
     feature_clusters = k_mean.labels_
@@ -106,12 +107,12 @@ transformed_gallery_features = lmnn.transform(pca_gallery_features)
 compute_k_mean(num_of_clusters, transformed_query_features, transformed_gallery_features, gallery_labels)
 
 # Compute NCA (Neighbourhood Components Analysis) Learning
-# print("\n-----NCA-----")
-# nca = NCA(max_iter=20, verbose=True)
-# nca.fit(original_train_features, original_train_labels)
-# transformed_query_features = nca.transform(query_features)
-# transformed_gallery_features = nca.transform(gallery_features)
-# compute_k_mean(num_of_clusters, transformed_query_features, transformed_gallery_features, gallery_labels)
+print("\n-----NCA-----")
+nca = NCA(max_iter=20, verbose=True)
+nca.fit(original_train_features, original_train_labels)
+transformed_query_features = nca.transform(query_features)
+transformed_gallery_features = nca.transform(gallery_features)
+compute_k_mean(num_of_clusters, transformed_query_features, transformed_gallery_features, gallery_labels)
 
 # Compute PCA_NCA Learning
 print("\n-----PCA_NCA-----")
@@ -123,14 +124,14 @@ print("Learning time: %s" % (end_time - start_time))
 transformed_query_features = nca.transform(pca_query_features)
 transformed_gallery_features = nca.transform(pca_gallery_features)
 compute_k_mean(num_of_clusters, transformed_query_features, transformed_gallery_features, gallery_labels)
-#
-# # Compute ITML (Information Theoretic Metric Learning)
-# print("\n-----ITML-----")
-# itml = ITML_Supervised(max_iter=20, convergence_threshold=1e-5, num_constraints=500, verbose=True)
-# itml.fit(original_train_features, original_train_labels)
-# transformed_query_features = itml.transform(query_features)
-# transformed_gallery_features = itml.transform(gallery_features)
-# compute_k_mean(num_of_clusters, transformed_query_features, transformed_gallery_features, gallery_labels)
+
+# Compute ITML (Information Theoretic Metric Learning)
+print("\n-----ITML-----")
+itml = ITML_Supervised(max_iter=20, convergence_threshold=1e-5, num_constraints=500, verbose=True)
+itml.fit(original_train_features, original_train_labels)
+transformed_query_features = itml.transform(query_features)
+transformed_gallery_features = itml.transform(gallery_features)
+compute_k_mean(num_of_clusters, transformed_query_features, transformed_gallery_features, gallery_labels)
 
 # Compute PCA_ITML
 print("\n-----PCA_ITML-----")
