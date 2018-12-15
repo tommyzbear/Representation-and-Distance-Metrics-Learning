@@ -1,17 +1,15 @@
 import numpy as np
 import image_data_processor as idp
-from numba import jit
+#from numba import jit
 
 
 class PCA:
     """Principle Component Analysis"""
     def __init__(self,
                  train_samples,
-                 train_results,
                  M,
                  low_dimension=False):
         self.train_samples = train_samples.T
-        self.train_results = train_results
         self.num_of_train_samples = train_samples.shape[0]
         self.resolution = train_samples.shape[1]
         self.M = M
@@ -24,7 +22,7 @@ class PCA:
         self.dimensioned_eig_vectors = None
         self.covariance = None
 
-    @jit
+#    @jit
     def fit(self):
         # normalize training samples
         normalized_train_samples = (self.train_samples.T - self.train_avg_vector).T
@@ -67,7 +65,7 @@ class PCA:
 
         self.projected = True
 
-    @jit
+#    @jit
     def project(self, samples):
         if self.projected is False:
             raise Exception("Need to train PCA first by using pca.fit().")
